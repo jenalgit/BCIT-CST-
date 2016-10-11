@@ -1,0 +1,233 @@
+SQL>  --
+SQL>  -- ---------------------------------------------------------
+SQL>  --
+SQL>  --  COMP 2714
+SQL>  --  SET 2C
+SQL>  --  Assignment Asn02
+SQL>  --  Kobunnoi, Kunlaya    A00959419
+SQL>  --  Lancelei, Herradura  A00960501
+SQL>  --  email: kkobunnoi@my.bcit.ca
+SQL>  --  email: lherradura@my.bcit.ca
+SQL>  --
+SQL>  -- ---------------------------------------------------------
+SQL>  --  LOAD DATABASE
+SQL>  --  START C:\Users\Kunlaya\workspace\COMP2714\Assignments\Assignment2\Asn2SetupHotels.sql
+SQL>  --  ASSIGNMENT
+SQL>  --  START C:\Users\Kunlaya\workspace\COMP2714\Assignments\Assignment2\Asn02_KobunnoiK.sql
+SQL>  -- ---------------------------------------------------------
+SQL> Session altered.
+SP2-0734: unknown command beginning "Session al..." - rest of line ignored.
+SQL> ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD';
+
+Session altered.
+
+SQL> SELECT SYSDATE
+  2  FROM DUAL;
+
+SYSDATE                                                                         
+----------                                                                      
+2016-09-29                                                                      
+
+SQL> -- Q1.
+SQL> -- For all hotels in London, list hotel name, hotelAddress, room type and price
+SQL> -- of all Single, Double or Family rooms with a price below 100.00 per night,
+SQL> -- in descending order of hotelName, ascending order of price and descending order
+SQL> -- of type. List each result entry only once.
+SQL> --
+SQL> SELECT DISTINCT hotelName, hotelAddress, type, price
+  2  FROM Hotel
+  3  	     INNER JOIN Room
+  4  	     ON Hotel.hotelNo = Room.hotelNo
+  5  WHERE hotelAddress LIKE '%London'
+  6  	     AND price BETWEEN 0 AND 100.00
+  7  	     AND type IN('Single', 'Double', 'Family')
+  8  ORDER BY hotelName DESC,
+  9  	     price ASC,
+ 10  	     type DESC
+ 11  ;
+
+HOTELNAME        HOTELADDRESS                             TYPE          PRICE   
+---------------- ---------------------------------------- -------- ----------   
+Holiday Inn      56 Edinburg Square, London               Single           35   
+Holiday Inn      56 Edinburg Square, London               Double           50   
+Grosvenor Hotel  100 Oxford Road, London                  Single           40   
+
+6 rows selected.
+
+SQL> -- Q2.
+SQL> -- List the Vancouver hotel bookings for which no dateTo has been specified.
+SQL> -- List the hotelName, hotelAddress, room number, dateFrom and dateTo.
+SQL> -- Note: Hotels in West and North Vancouver should be excluded.
+SQL> --
+SQL> SELECT hotelName, hotelAddress, roomNo, dateTo, dateFrom
+  2  FROM Booking
+  3  	     NATURAL JOIN Room
+  4  	     NATURAL JOIN Hotel
+  5  WHERE dateTo IS NULL
+  6  	     AND hotelAddress LIKE '%,_Vancouver'
+  7  ;
+
+HOTELNAME        HOTELADDRESS                                 ROOMNO DATETO     
+---------------- ---------------------------------------- ---------- ---------- 
+DATEFROM                                                                        
+----------                                                                      
+Meridian Hotel   789 Howe Street, Vancouver                       10            
+2016-09-21                                                                      
+                                                                                
+
+SQL> -- Q3.
+SQL> -- What is the average price of a room for each hotel?
+SQL> -- List it with the hotelName and in hotelName order.
+SQL> --
+SQL> SELECT hotelName,
+  2  	     AVG(DISTINCT price) AS "AVG(price)"
+  3  FROM Hotel
+  4  	     NATURAL JOIN Room
+  5  GROUP BY hotelName
+  6  ;
+
+HOTELNAME        AVG(price)                                                     
+---------------- ----------                                                     
+Grosvenor Inn           105                                                     
+Meridian Hotel   106.666667                                                     
+
+8 rows selected.
+
+SQL> -- Q4.
+SQL> -- Do this for each hotel and in one single query.
+SQL> -- List the total revenue with the hotelName, and only if the total
+SQL> -- revenue is between $500 to $1000 [in SQL context]. List in hotelName order.
+SQL> --
+SQL> SELECT hotelName, SUM(price) AS "Total Revenue"
+  2  FROM Hotel
+  3  	     INNER JOIN Room
+  4  	     ON Hotel.hotelNo = Room.hotelNo
+  5  WHERE type = 'Double'
+  6  GROUP BY hotelName
+  7  HAVING SUM(price) > 500
+  8  	     AND SUM(price) < 1000
+  9  ;
+
+HOTELNAME        Total Revenue                                                  
+---------------- -------------                                                  
+Park Royal Hotel           688                                                  
+Delta Inn                  900                                                  
+The Ramada                 600                                                  
+
+SQL> -- Q5
+SQL> -- List the type and price of all rooms at the hotels with 'Grosvenor'
+SQL> -- in name, including the number of rooms for each combination of type
+SQL> -- and price. List only if the number of rooms for each type and price
+SQL> -- combination is greater than 3.
+SQL> SELECT type,
+  2  	     price,
+  3  	     COUNT(roomNo) AS "Number of Rooms"
+  4  FROM Hotel
+  5  	     INNER JOIN Room
+  6  	     ON Hotel.hotelNo = Room.hotelNo
+  7  WHERE hotelName LIKE 'Grosvenor%'
+  8  GROUP BY type, price
+  9  HAVING COUNT(type) > 3
+ 10  ;
+
+TYPE          PRICE Number of Rooms                                             
+-------- ---------- ---------------                                             
+Double           55               4                                             
+Double           95               5                                             
+6 rows selected.
+
+SQL> -- Q6
+SQL> -- Include the roomNo in the output. Use 2016-09-29 as the current date.
+SQL> SELECT g.guestName, b.roomNo
+  2    FROM Hotel h
+  3    JOIN Booking b ON b.hotelNo = h.hotelNo
+  4    JOIN Guest   g ON g.guestNo = b.guestNo
+  5    WHERE (dateTo IS NULL OR dateTo >= '2016-09-29')
+  6  	     AND (dateFrom <= '2016-09-29')
+  7  	     AND hotelName = 'Grosvenor Hotel'
+  8  ;
+
+GUESTNAME           ROOMNO                                                      
+--------------- ----------                                                      
+Peter Kennedy            5                                                      
+Sundeep Mohan            4                                                      
+Ivan Pratt               3                                                      
+
+SQL> -- Q7
+SQL> -- Do this question for each of the hotels with 'Grosvenor' in name.
+SQL> -- Use 2016-09-29 as current date.
+SQL> SELECT h.hotelName,
+  2  	    SUM(r.price) AS "Total Income"
+  3    FROM Booking b
+  4    JOIN Hotel h ON h.hotelNo = b.hotelNo
+  5    JOIN Room  r ON r.hotelNO = h.hotelNo
+  6  		   AND r.roomNO  = b.roomNo
+  7    WHERE h.hotelName LIKE 'Grosvenor%'
+  8    AND   b.dateFrom  <= DATE '2016-09-29'
+  9    AND  (b.dateTo Is NULL OR dateTo >= DATE '2016-09-29')
+ 10    GROUP BY h.hotelName
+ 11  ;
+
+HOTELNAME        Total Income                                                   
+---------------- ------------                                                   
+Grosvenor Inn              95                                                   
+Grosvenor Hotel           135                                                   
+
+SQL> -- Q8
+SQL> -- What is the total income for each room type from bookings for each hotel (listing hotel names) today?
+SQL> -- Use 2016-09-29 as today's date. List in ascending order of hotel name and room type.
+SQL> SELECT h.hotelName,
+  2  	   r.type     ,
+  3  	   SUM(r.price) AS "Price"
+  4    FROM Booking b
+  5    JOIN Hotel h ON h.hotelNo = b.hotelNo
+  6    JOIN Room  r ON r.hotelNo = h.hotelNo
+  7  	    AND        r.roomNo  = b.roomNo
+  8    WHERE b.dateFrom <= DATE '2016-09-29'
+  9    AND  ( dateTo IS NULL OR dateto >= DATE '2016-09-29')
+ 10    GROUP BY h.hotelName, r.type
+ 11    ORDER BY h.hotelName ASC, r.type ASC;
+
+HOTELNAME        TYPE          Price                                            
+---------------- -------- ----------                                            
+Grosvenor Hotel  Double           55                                            
+Grosvenor Hotel  Single           80                                            
+Grosvenor Inn    Double           95                                            
+Holiday Inn      Single           35                                            
+Meridian Hotel   Deluxe          150                                            
+
+SQL> -- Q9
+SQL> -- List the new hotels that are still under construction, i.e. no room data in the database as yet for these hotels.
+SQL> --
+SQL> SELECT h.hotelName
+  2  FROM Hotel h
+  3   LEFT JOIN Room r
+  4  	     ON h.hotelNo = r.hotelNo
+  5    WHERE r.hotelNo IS NULL;
+
+HOTELNAME                                                                       
+----------------                                                                
+Olympic Resort                                                                  
+Royale London                                                                   
+
+SQL> -- Q10
+SQL> -- What is the percentage of hotels still under construction? List the total number of hotels, number of hotels
+SQL> -- completed, the number of hotels under construction, and the percentage of hotels under construction. NO SUBQUERY.
+SQL>  SELECT COUNT(DISTINCT h.hotelNo) AS " Number Of Hotels ",
+  2  		 COUNT(DISTINCT r.hotelNo) AS "Completed Hotels",
+  3  		 ((COUNT  (DISTINCT h.hotelNo))
+  4  		  -(COUNT (DISTINCT r.hotelNo))
+  5  		 ) AS Construction,
+  6  		 (((COUNT(DISTINCT h.hotelNo)) -(COUNT (DISTINCT r.hotelNo)))
+  7  		    /(COUNT (DISTINCT h.hotelNo))
+  8  		    * 100
+  9  		 ) AS PercentConst
+ 10  	 FROM Hotel h
+ 11  	      LEFT JOIN Room r ON h.hotelNo = r.hotelNo
+ 12    ;
+
+ Number Of Hotels  Completed Hotels CONSTRUCTION PERCENTCONST                   
+------------------ ---------------- ------------ ------------                   
+                10                8            2           20                   
+
+SQL> SPOOL OFF
