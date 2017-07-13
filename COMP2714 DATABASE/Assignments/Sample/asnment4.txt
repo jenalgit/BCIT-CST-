@@ -1,0 +1,497 @@
+SQL> --
+SQL> -- ----------------------------------------------------------
+SQL> -- START C:\Work\Assn3\Asn3_LeeHs.sql
+SQL> -- ---------------------------------------------------------
+SQL> --  COMP 2714
+SQL> --  SET 2D
+SQL> --  Assignment Asn03
+SQL> --  Kung, Camillus    A00785290
+SQL> --      Lee, Hansol	       A00966991
+SQL> --  email: camillus.kung@gmail.com
+SQL> --      email: hlee379@bcit.ca
+SQL> -- ---------------------------------------------------------
+SQL> -- ---------------------------------------------------------
+SQL> -- Q1. What is the average price of a room in London?
+SQL> -- .a) Do this using JOIN, b) Do this using IN subquery.
+SQL> -- ---------------------------------------------------------
+SQL>
+SQL> -- a)
+SQL> SELECT  AVG(r.price) AS "London_Average_price"
+  2  	 FROM Hotel h
+  3  	 INNER JOIN Room r
+  4  	     ON h.hotelNo = r.hotelNo
+  5  	 WHERE h.hotelAddress LIKE '%London%'
+  6  	 ;
+
+London_Average_price
+--------------------
+                  55
+
+SQL>
+SQL> -- b)
+SQL>  SELECT AVG(r.price) AS "London_Average_price"
+  2  	 FROM Room r
+  3  	 WHERE hotelNo IN
+  4  	     (SELECT hotelNo
+  5  	      FROM Hotel h
+  6  	      WHERE hotelAddress LIKE '%London%');
+
+London_Average_price
+--------------------
+                  55
+
+SQL>
+SQL> -- ---------------------------------------------------------
+SQL> -- Q2. Use the month of 2016-10 instead of August, and do the query
+SQL> -- for each hotel, --listing in hotelName order: i.e.
+SQL> -- How many different guests have made bookings for
+SQL> -- 2016-10 for each hotel?
+SQL> -- ---------------------------------------------------------
+SQL>
+SQL> SELECT h.hotelName, b.dateFrom, b.dateTo, SUM(DISTINCT b.guestNo) AS "countguest"
+  2  	 FROM Hotel h
+  3  	 INNER JOIN Booking b
+  4  	     ON h.hotelNo = b.hotelNo
+  5  	 WHERE (dateTo IS NULL OR dateTo >= DATE'2016-10-01') AND dateFrom < DATE'2016-11-01'
+  6  	 GROUP BY hotelName, dateFrom, b.dateTo
+  7  	 ORDER BY hotelName;
+
+HOTELNAME        DATEFROM   DATETO     countguest
+---------------- ---------- ---------- ----------
+Delta Inn        2016-10-02 2016-10-04          4
+Delta Inn        2016-10-28 2016-11-05         15
+Grosvenor Hotel  2016-09-21 2016-10-24         12
+Grosvenor Hotel  2016-09-22 2016-10-02         15
+Grosvenor Hotel  2016-09-27 2016-10-04          9
+Grosvenor Hotel  2016-09-30                    13
+Grosvenor Hotel  2016-10-05 2016-10-22         11
+Grosvenor Hotel  2016-10-07 2016-10-14          9
+Grosvenor Inn    2016-09-19 2016-10-28          5
+Grosvenor Inn    2016-10-01 2016-11-07         12
+Grosvenor Inn    2016-10-03 2016-11-26          1
+
+HOTELNAME        DATEFROM   DATETO     countguest
+---------------- ---------- ---------- ----------
+Holiday Inn      2016-09-26                     2
+Imperial Palace  2016-10-04                    11
+Imperial Palace  2016-10-05 2016-10-08          3
+Meridian Hotel   2016-09-21                     6
+Park Royal Hotel 2016-09-30 2016-10-02          1
+The Ramada       2016-10-09 2016-10-11          7
+
+17 rows selected.
+
+SQL>
+SQL> -- --------------------------------------------------------
+SQL> -- Q3. Use 2016-10-06 as today's date. Include all 'Grosvenor' hotels.
+SQL> -- List in hotelNo, roomNo order.
+SQL> -- --------------------------------------------------------
+SQL>
+SQL>  SELECT hotelName, a.roomNo, type, price, guestName
+  2  	 FROM (SELECT hotelNo, hotelName, roomNo, type, price
+  3  	       FROM Hotel h
+  4  	       NATURAL JOIN Room r
+  5  	       WHERE hotelName LIKE '%Grosvenor%') a
+  6  	 LEFT JOIN
+  7  	      (SELECT hotelNo, roomNo, GuestName
+  8  	       FROM Booking b
+  9  	       LEFT JOIN Guest g
+ 10  	       ON b.guestNo = g.guestNo
+ 11  	       where dateFrom <= DATE'2016-10-06'
+ 12  	       AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')) b
+ 13  	 ON a.hotelNo = b.hotelNo AND a.roomNO = b.roomNo
+ 14  	 ORDER BY a.hotelNo, a.roomNo;
+
+HOTELNAME            ROOMNO TYPE          PRICE GUESTNAME
+---------------- ---------- -------- ---------- ---------------
+Grosvenor Hotel           1 Single           40
+Grosvenor Hotel           2 Single           40
+Grosvenor Hotel           3 Single           40 Diana Darby
+Grosvenor Hotel           4 Single           40 Sundeep Mohan
+Grosvenor Hotel           5 Double           55
+Grosvenor Hotel           6 Double           55
+Grosvenor Hotel           7 Double           55 Eileen Reynolds
+Grosvenor Hotel           8 Double           55
+Grosvenor Hotel           9 Family           85
+Grosvenor Hotel          10 Family           90
+Grosvenor Hotel          11 Deluxe          110
+
+HOTELNAME            ROOMNO TYPE          PRICE GUESTNAME
+---------------- ---------- -------- ---------- ---------------
+Grosvenor Hotel          12 Deluxe          120
+Grosvenor Hotel          13 Deluxe          120
+Grosvenor Inn             1 Double           95 Rick Hamilton
+Grosvenor Inn             2 Double           95
+Grosvenor Inn             3 Double           95
+Grosvenor Inn             4 Double           95
+Grosvenor Inn             5 Double           95
+Grosvenor Inn             6 Family          125
+Grosvenor Inn             7 Family          125
+Grosvenor Inn             8 Family          125
+Grosvenor Inn             9 Family          125
+
+HOTELNAME            ROOMNO TYPE          PRICE GUESTNAME
+---------------- ---------- -------- ---------- ---------------
+Grosvenor Inn            10 Family          125
+Grosvenor Inn            11 Deluxe          155
+Grosvenor Inn            12 Deluxe          155
+Grosvenor Inn            13 Deluxe          155
+Grosvenor Inn            14 Deluxe          155
+Grosvenor Inn            15 Deluxe          155 Tony Saunders
+Grosvenor Inn            16 Single           45
+Grosvenor Inn            17 Single           45
+Grosvenor Inn            18 Single           45
+Grosvenor Inn            19 Single           45
+Grosvenor Inn            20 Single           45 Sundeep Mohan
+
+33 rows selected.
+
+SQL>
+SQL>
+SQL>
+SQL>
+SQL> -- --------------------------------------------------------
+SQL> -- Q4. Use 2016-10-06 as today's date. Include all 'Grosvenor' hotels.
+SQL> -- List in hotelNo, roomNo order. Use NOT IN.
+SQL> -- --------------------------------------------------------
+SQL>
+SQL>
+SQL> SELECT hotelname, hotelNo, roomNo, type, price
+  2    FROM Hotel NATURAL JOIN Room
+  3   WHERE hotelName LIKE '%Grosvenor%'
+  4  	AND (hotelNo, roomNo) NOT IN
+  5  	    (SELECT hotelNo, roomNo
+  6  	       FROM Booking
+  7  	     WHERE dateFrom <= DATE'2016-10-06'
+  8  	       AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+  9  	   )
+ 10   ORDER BY hotelNo, roomNo;
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Hotel           1          1 Single           40
+Grosvenor Hotel           1          2 Single           40
+Grosvenor Hotel           1          5 Double           55
+Grosvenor Hotel           1          6 Double           55
+Grosvenor Hotel           1          8 Double           55
+Grosvenor Hotel           1          9 Family           85
+Grosvenor Hotel           1         10 Family           90
+Grosvenor Hotel           1         11 Deluxe          110
+Grosvenor Hotel           1         12 Deluxe          120
+Grosvenor Hotel           1         13 Deluxe          120
+Grosvenor Inn             8          2 Double           95
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8          3 Double           95
+Grosvenor Inn             8          4 Double           95
+Grosvenor Inn             8          5 Double           95
+Grosvenor Inn             8          6 Family          125
+Grosvenor Inn             8          7 Family          125
+Grosvenor Inn             8          8 Family          125
+Grosvenor Inn             8          9 Family          125
+Grosvenor Inn             8         10 Family          125
+Grosvenor Inn             8         11 Deluxe          155
+Grosvenor Inn             8         12 Deluxe          155
+Grosvenor Inn             8         13 Deluxe          155
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8         14 Deluxe          155
+Grosvenor Inn             8         16 Single           45
+Grosvenor Inn             8         17 Single           45
+Grosvenor Inn             8         18 Single           45
+Grosvenor Inn             8         19 Single           45
+
+27 rows selected.
+
+SQL>
+SQL>  -- --------------------------------------------------------
+SQL>  -- Q5. Use 2016-10-06 as today's date. Include all 'Grosvenor' hotels.
+SQL>  -- List in hotelNo, roomNo order. Use NOT EXISTS.
+SQL>  -- --------------------------------------------------------
+SQL>
+SQL> SELECT h.hotelName, h.hotelNo, r.roomNo, r.type, r.price
+  2  	 FROM Hotel h
+  3  	 INNER JOIN Room r
+  4  	 ON h.hotelNo = r.hotelNo
+  5  	 WHERE hotelName LIKE '%Grosvenor%'
+  6  	 AND NOT EXISTS
+  7  	     (SELECT b.hotelNo, b.roomNo
+  8  	      FROM Booking b
+  9  	      WHERE r.hotelNo = b.hotelNo
+ 10  	      AND r.roomNo = b.roomNo
+ 11  	      AND dateFrom <= DATE'2016-10-06'
+ 12  	      AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 13  	      )
+ 14  ORDER BY hotelNo, roomNo;
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Hotel           1          1 Single           40
+Grosvenor Hotel           1          2 Single           40
+Grosvenor Hotel           1          5 Double           55
+Grosvenor Hotel           1          6 Double           55
+Grosvenor Hotel           1          8 Double           55
+Grosvenor Hotel           1          9 Family           85
+Grosvenor Hotel           1         10 Family           90
+Grosvenor Hotel           1         11 Deluxe          110
+Grosvenor Hotel           1         12 Deluxe          120
+Grosvenor Hotel           1         13 Deluxe          120
+Grosvenor Inn             8          2 Double           95
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8          3 Double           95
+Grosvenor Inn             8          4 Double           95
+Grosvenor Inn             8          5 Double           95
+Grosvenor Inn             8          6 Family          125
+Grosvenor Inn             8          7 Family          125
+Grosvenor Inn             8          8 Family          125
+Grosvenor Inn             8          9 Family          125
+Grosvenor Inn             8         10 Family          125
+Grosvenor Inn             8         11 Deluxe          155
+Grosvenor Inn             8         12 Deluxe          155
+Grosvenor Inn             8         13 Deluxe          155
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8         14 Deluxe          155
+Grosvenor Inn             8         16 Single           45
+Grosvenor Inn             8         17 Single           45
+Grosvenor Inn             8         18 Single           45
+Grosvenor Inn             8         19 Single           45
+
+27 rows selected.
+
+SQL>
+SQL>
+SQL>  -- --------------------------------------------------------
+SQL>  -- !!!!Q6. Use 2016-10-06 as today's date. Include all 'Grosvenor' hotels.
+SQL>  -- List in hotelNo, roomNo order. Use LEFT JOIN.
+SQL>  -- --------------------------------------------------------
+SQL> SELECT a.hotelName, a.hotelNo, a.roomNo, a.type, a.price
+  2  	 FROM (SELECT hotelName, hotelNo, roomNo, type, price
+  3  	       FROM Hotel
+  4  	       NATURAL JOIN Room
+  5  	       WHERE hotelName LIKE '%Grosvenor%') a
+  6  	 LEFT JOIN
+  7  	      (SELECT hotelNo, roomNo
+  8  	       FROM Booking
+  9  	       WHERE dateFrom <= DATE'2016-10-06'
+ 10  		AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')) b
+ 11  	 ON  a.hotelNo = b.hotelNo AND a.roomNo = b.roomNo
+ 12  	 WHERE b.hotelno IS NULL AND b.roomno IS NULL
+ 13  	 ORDER BY a.hotelNO, a.roomNo;
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Hotel           1          1 Single           40
+Grosvenor Hotel           1          2 Single           40
+Grosvenor Hotel           1          5 Double           55
+Grosvenor Hotel           1          6 Double           55
+Grosvenor Hotel           1          8 Double           55
+Grosvenor Hotel           1          9 Family           85
+Grosvenor Hotel           1         10 Family           90
+Grosvenor Hotel           1         11 Deluxe          110
+Grosvenor Hotel           1         12 Deluxe          120
+Grosvenor Hotel           1         13 Deluxe          120
+Grosvenor Inn             8          2 Double           95
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8          3 Double           95
+Grosvenor Inn             8          4 Double           95
+Grosvenor Inn             8          5 Double           95
+Grosvenor Inn             8          6 Family          125
+Grosvenor Inn             8          7 Family          125
+Grosvenor Inn             8          8 Family          125
+Grosvenor Inn             8          9 Family          125
+Grosvenor Inn             8         10 Family          125
+Grosvenor Inn             8         11 Deluxe          155
+Grosvenor Inn             8         12 Deluxe          155
+Grosvenor Inn             8         13 Deluxe          155
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8         14 Deluxe          155
+Grosvenor Inn             8         16 Single           45
+Grosvenor Inn             8         17 Single           45
+Grosvenor Inn             8         18 Single           45
+Grosvenor Inn             8         19 Single           45
+
+27 rows selected.
+
+SQL>
+SQL>
+SQL> -- --------------------------------------------------------
+SQL> -- !!!!Q7. (6.20 - 5 mks) Use 2016-10-06 as today's date. Include all 'Grosvenor'	--hotels. List in hotelNo, roomNo order. Use MINUS.
+SQL> -- --------------------------------------------------------
+SQL>
+SQL> SELECT hotelName, hotelNo, roomNo, type, price
+  2  	 FROM Hotel
+  3  	 NATURAL JOIN Room
+  4  	 WHERE hotelName LIKE '%Grosvenor%'
+  5  	 MINUS
+  6  	 SELECT hotelName, hotelNo, roomNo, type, price
+  7  	 From Hotel
+  8  	 NATURAL JOIN Room
+  9  	 NATURAL JOIN Booking
+ 10  	 WHERE dateFrom <= DATE'2016-10-06'
+ 11  	 AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 12  	 ORDER By hotelNo, roomNo
+ 13  	 ;
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Hotel           1          1 Single           40
+Grosvenor Hotel           1          2 Single           40
+Grosvenor Hotel           1          5 Double           55
+Grosvenor Hotel           1          6 Double           55
+Grosvenor Hotel           1          8 Double           55
+Grosvenor Hotel           1          9 Family           85
+Grosvenor Hotel           1         10 Family           90
+Grosvenor Hotel           1         11 Deluxe          110
+Grosvenor Hotel           1         12 Deluxe          120
+Grosvenor Hotel           1         13 Deluxe          120
+Grosvenor Inn             8          2 Double           95
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8          3 Double           95
+Grosvenor Inn             8          4 Double           95
+Grosvenor Inn             8          5 Double           95
+Grosvenor Inn             8          6 Family          125
+Grosvenor Inn             8          7 Family          125
+Grosvenor Inn             8          8 Family          125
+Grosvenor Inn             8          9 Family          125
+Grosvenor Inn             8         10 Family          125
+Grosvenor Inn             8         11 Deluxe          155
+Grosvenor Inn             8         12 Deluxe          155
+Grosvenor Inn             8         13 Deluxe          155
+
+HOTELNAME           HOTELNO     ROOMNO TYPE          PRICE
+---------------- ---------- ---------- -------- ----------
+Grosvenor Inn             8         14 Deluxe          155
+Grosvenor Inn             8         16 Single           45
+Grosvenor Inn             8         17 Single           45
+Grosvenor Inn             8         18 Single           45
+Grosvenor Inn             8         19 Single           45
+
+27 rows selected.
+
+SQL>
+SQL>
+SQL> -- --------------------------------------------------------
+SQL> -- Q8. What is the average number of bookings for each hotel
+SQL> -- in 2016-10
+SQL> -- Use the month of 2016-10 instead of August.
+SQL> --- --------------------------------------------------------
+SQL>
+SQL>
+SQL>
+SQL> SELECT AVG(COUNT(guestNo)) AS Avg_Bookings
+  2    FROM Booking b
+  3   WHERE (dateTo IS NULL OR dateTo >= DATE'2016-10-01')
+  4  	AND dateFrom < DATE'2016-11-01'
+  5   GROUP BY b.hotelNo;
+
+AVG_BOOKINGS
+------------
+       2.125
+
+SQL>
+SQL>
+SQL>
+SQL> -- --------------------------------------------------------
+SQL> -- Q9. What is the lost income from unoccupied rooms at each hotel today
+SQL> -- Use 2016-10-06 as today's date. List hotelNo, hotelName and LostIncome,
+SQL> -- in hotelNo order.
+SQL> -- --------------------------------------------------------
+SQL>
+SQL>
+SQL> SELECT h.hotelName, h.hotelNo, SUM(price) AS LostIncome
+  2  	 FROM Hotel h
+  3  	 INNER JOIN Room r
+  4  	 ON h.hotelNo = r.hotelNo
+  5  	     WHERE (r.hotelNo, r.roomNo) NOT IN
+  6  		 (SELECT hotelNo, roomNo
+  7  		  FROM Booking b
+  8  		  WHERE dateFrom <= DATE'2016-10-06'
+  9  		  AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 10  		  )
+ 11  GROUP BY h.hotelNo, h.hotelName
+ 12  ORDER BY h.hotelNo;
+
+HOTELNAME           HOTELNO LOSTINCOME
+---------------- ---------- ----------
+Grosvenor Hotel           1        770
+Meridian Hotel            2       1060
+Holiday Inn               3        545
+The Ramada                4       2600
+Imperial Palace           5       1780
+Park Royal Hotel          6       1072
+Delta Inn                 7        900
+Grosvenor Inn             8       1805
+
+8 rows selected.
+
+SQL>
+SQL>
+SQL>
+SQL>
+SQL> -- --------------------------------------------------------
+SQL> -- W10. Use 2016-10-06 as today, and guestAccount as view name. [The account
+SQL> -- info for -- each guest means: Room (roomNo), Name (guestName), Check-in
+SQL> -- (dateFrom),  Check-out (dateTo=today), Rate (price), #Days (calculate from
+SQL> -- dateTo and dateFrom), and Total (calculate from dateTo, dateFrom and price).] -- Add a query to test the view
+SQL> -- --------------------------------------------------------
+SQL> DROP VIEW guestAccount;
+
+View dropped.
+
+SQL> --
+SQL> CREATE VIEW guestAccount
+  2  	 (Room, Name, CheckIn, CheckOut, Rate, Days, Total)
+  3  	 AS
+  4  	 SELECT b.roomNo, g.guestName, b.dateFrom, b.dateTo, r.price,
+  5  		b.dateTo - b.dateFrom, (b.dateTo - b.dateFrom) * r.price
+  6  	   FROM Hotel h
+  7  		INNER JOIN Room r
+  8  		   ON h.hotelNo = r.hotelNo
+  9  		INNER JOIN Booking b
+ 10  		   ON r.hotelNo = b.hotelNo AND r.roomNo = b.roomNo
+ 11  		INNER JOIN Guest g
+ 12  		   ON b.guestNo = g.guestNo
+ 13  	  WHERE h.hotelName = 'Grosvenor Hotel'
+ 14  	    AND dateFrom <= DATE'2016-10-06'
+ 15  	    AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06');
+
+View created.
+
+SQL> --
+SQL> GRANT SELECT ON guestAccount TO system;
+
+Grant succeeded.
+
+SQL> --
+SQL> SELECT *
+  2    FROM guestAccount
+  3   ORDER BY Room;
+
+      ROOM NAME            CHECKIN    CHECKOUT         RATE       DAYS
+---------- --------------- ---------- ---------- ---------- ----------
+     TOTAL
+----------
+         3 Diana Darby     2016-10-05 2016-10-22         40         17
+       680
+
+         4 Sundeep Mohan   2016-09-21 2016-10-24         40         33
+      1320
+
+         7 Eileen Reynolds 2016-09-30                    55
+
+
+
+SQL>
+SQL> SPOOL OFF

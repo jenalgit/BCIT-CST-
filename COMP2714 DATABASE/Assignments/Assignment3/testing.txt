@@ -1,0 +1,86 @@
+SQL> -- ---------------------------------------------------------
+SQL> --
+SQL> --  COMP 2714
+SQL> --  SET 2C
+SQL> --  Assignment Asn03
+SQL> --  Kobunnoi, Kunlaya A00959419
+SQL> --  email: kkobunnoi@my.bcit.ca
+SQL> --
+SQL> -- ---------------------------------------------------------
+SQL> --  BUILT DATABASE
+SQL> --  START C:\Users\Kunlaya\workspace\COMP2714\Assignments\Assignment3\Asn3SetupHotels.sql
+SQL> --
+SQL> --  ASSIGNMENT
+SQL> --  START C:\Users\Kunlaya\workspace\COMP2714\Assignments\Assignment3\Asn03_Kobunnoik.sql
+SQL> -- ---------------------------------------------------------
+SQL> --
+SQL> ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD';
+
+Session altered.
+
+SQL> --
+SQL> SELECT SYSDATE
+  2  FROM DUAL;
+
+SYSDATE                                                                         
+----------                                                                      
+2016-10-25                                                                      
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> --Q1) What is the average price of a room in london?
+SQL> ----------------------------------------------------------
+SQL> -- A) Using join?
+SQL> SELECT AVG(price) AS "Average Price"
+  2  FROM  Room r
+  3   JOIN Hotel h ON r.hotelNo = h.hotelNo
+  4  WHERE hotelAddress LIKE '%London%';
+
+Average Price                                                                   
+-------------                                                                   
+           55                                                                   
+
+SQL> --B) Do this using IN subquery?
+SQL> SELECT AVG(price) AS "Average Price"
+  2  FROM  Room
+  3  WHERE hotelNo IN(SELECT hotelNo
+  4  		      FROM   Hotel
+  5  		      WHERE  hotelAddress LIKE '%London%');
+
+Average Price                                                                   
+-------------                                                                   
+           55                                                                   
+
+SQL> ----------------------------------------------------------
+SQL> -- Q2) How many different guests have made bookings for August?
+SQL> --     Use the month of 2016-10 instead of August, and do the
+SQL> --     query for each hotel, listing in hotelName order:
+SQL> --     i.e) How many different guests have made bookings for 2016-10
+SQL> -- 	 for each hotel.
+SQL> ----------------------------------------------------------
+SQL> SELECT hotelName,
+  2  	    COUNT(guestNo) AS "Total of guest"
+  3   FROM Booking b
+  4  	 NATURAL JOIN Hotel h
+  5  WHERE (dateTo IS NULL OR dateTo >= DATE'2016-10-01')
+  6  	 AND dateFrom < DATE'2016-11-01'
+  7  GROUP BY hotelName
+  8  ORDER BY hotelName;
+
+HOTELNAME        Total of guest                                                 
+---------------- --------------                                                 
+Delta Inn                     2                                                 
+Grosvenor Hotel               6                                                 
+Grosvenor Inn                 3                                                 
+Holiday Inn                   1                                                 
+Imperial Palace               2                                                 
+Meridian Hotel                1                                                 
+Park Royal Hotel              1                                                 
+The Ramada                    1                                                 
+
+8 rows selected.
+
+SQL> --
+SQL> --END--------------------------------------------------------
+SQL> --
+SQL> SPOOL OFF

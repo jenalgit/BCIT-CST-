@@ -1,0 +1,307 @@
+SQL> --
+SQL> -- ---------------------------------------------------------
+SQL> --  The following comments will also be sent / spooled to the
+SQL> --    output text file to identify the ownership of the
+SQL> --    Oracle SQL*Plus work.
+SQL> --
+SQL> --  COMP 2714
+SQL> --  SET 2C
+SQL> --  LAB01 Exercise / Assignment Asn00
+SQL> --  Kobunnoi, Kunlaya    A00959419
+SQL> --  email: kunlaya_kobunnoi@bcit.ca
+SQL> --
+SQL> -- ---------------------------------------------------------
+SQL> --  By default, Oracle uses the Windows Regional Option settings
+SQL> --    for the date and time format. To avoid confusion and to keep
+SQL> --    a consistent format, use Oracle's ALTER SESSION statement to
+SQL> --    change the current session's date format to YYYY-MM-DD, and
+SQL> --    then verify by displaying the current system date SYSDATE.
+SQL> --
+SQL> ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD';
+
+Session altered.
+
+SQL> --
+SQL> SELECT SYSDATE
+  2  FROM DUAL;
+
+SYSDATE                                                                         
+----------                                                                      
+2016-09-19                                                                      
+
+SQL> --
+SQL> -- ---------------------------------------------------------
+SQL> --  The next line uses the SQL*Plus START command to run a
+SQL> --    SQL script file (assumed to be located in D:\WORK\2714).
+SQL> --  ** If needed, change D:\... path to the folder you are using **
+SQL> --
+SQL> --  Once you have made all the necessary changes, save this current
+SQL> --    script file to disk. Then inside the SQL*Plus command window
+SQL> --    command prompt, type the following START command to execute.
+SQL> --
+SQL> --  START C:\Users\Kunlaya\workspace\COMP2714\Lab01_KobunnoiK.sql
+SQL> -- ---------------------------------------------------------
+SQL> -- Drop tables first before creating
+SQL> DROP TABLE OrdProd;
+
+Table dropped.
+
+SQL> DROP TABLE OrderTbl;
+
+Table dropped.
+
+SQL> DROP TABLE Product;
+
+Table dropped.
+
+SQL> DROP TABLE Customer;
+
+Table dropped.
+
+SQL> --
+SQL> -- Q1. Create Customer Table  - Note sample coding style
+SQL> CREATE TABLE Customer
+  2  (CustNo	       CHAR(8)	     NOT NULL
+  3  ,CustFirstName    VARCHAR2(20)  NOT NULL
+  4  ,CustLastName     VARCHAR2(30)  NOT NULL
+  5  ,CustStreet       VARCHAR2(50)  NOT NULL
+  6  ,CustCity	       VARCHAR2(30)  NOT NULL
+  7  ,CustState        CHAR(2)	     NOT NULL
+  8  ,CustZip	       CHAR(10)      NOT NULL
+  9  ,CustBal	       DECIMAL(12,2) DEFAULT 0 NOT NULL
+ 10  ,CONSTRAINT PKCustomer PRIMARY KEY (CustNo)
+ 11  );
+
+Table created.
+
+SQL> -- Q2. Create Product Table
+SQL> CREATE TABLE Product
+  2  (ProdNo		CHAR(8)       NOT NULL
+  3  ,ProdName		VARCHAR2(50)  NOT NULL
+  4  ,ProdMfg		VARCHAR2(20)  NOT NULL
+  5  ,ProdQOH		DECIMAL(10)   NOT NULL
+  6  ,ProdPrice 	DECIMAL(12,2) NOT NULL
+  7  ,ProdNextShipDate	DATE
+  8  ,CONSTRAINT PKProduct PRIMARY KEY (ProdNo)
+  9  );
+
+Table created.
+
+SQL> -- Q3. Create Order Table
+SQL> CREATE TABLE OrderTbl
+  2  (OrdNo	 CHAR(8)  NOT NULL
+  3  ,OrdDate	 DATE	  NOT NULL
+  4  ,CustNo	 CHAR(8)  NOT NULL
+  5  ,CONSTRAINT PKOrder PRIMARY KEY (OrdNo)
+  6  ,CONSTRAINT FKCustNo FOREIGN KEY (CustNo) REFERENCES Customer (CustNo)
+  7  );
+
+Table created.
+
+SQL> -- Q4. Create Ordered Product Table
+SQL> CREATE TABLE OrdProd
+  2  (OrdNo    CHAR(8)	   NOT NULL
+  3  ,ProdNo   CHAR(8)	   NOT NULL
+  4  ,Qty      DECIMAL(10) DEFAULT 1 NOT NULL
+  5  ,CONSTRAINT PKOrdProd PRIMARY KEY (OrdNo, ProdNo)
+  6  ,CONSTRAINT FKOrdNo FOREIGN KEY (OrdNo) REFERENCES OrderTbl (OrdNo)
+  7    ON DELETE CASCADE
+  8  ,CONSTRAINT FKProdNo FOREIGN KEY (ProdNo) REFERENCES Product (ProdNo)
+  9  );
+
+Table created.
+
+SQL> --
+SQL> --  ... Additional sections of SQL commands / statements.
+SQL> --      Note the sample coding style.
+SQL> --
+SQL> -- The sQL*Plus command DESCRIBE can be used to display the table info
+SQL> DESCRIBE Customer;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ CUSTNO                                    NOT NULL CHAR(8)
+ CUSTFIRSTNAME                             NOT NULL VARCHAR2(20)
+ CUSTLASTNAME                              NOT NULL VARCHAR2(30)
+ CUSTSTREET                                NOT NULL VARCHAR2(50)
+ CUSTCITY                                  NOT NULL VARCHAR2(30)
+ CUSTSTATE                                 NOT NULL CHAR(2)
+ CUSTZIP                                   NOT NULL CHAR(10)
+ CUSTBAL                                   NOT NULL NUMBER(12,2)
+
+SQL> DESCRIBE Product;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ PRODNO                                    NOT NULL CHAR(8)
+ PRODNAME                                  NOT NULL VARCHAR2(50)
+ PRODMFG                                   NOT NULL VARCHAR2(20)
+ PRODQOH                                   NOT NULL NUMBER(10)
+ PRODPRICE                                 NOT NULL NUMBER(12,2)
+ PRODNEXTSHIPDATE                                   DATE
+
+SQL> DESCRIBE OrderTbl;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ORDNO                                     NOT NULL CHAR(8)
+ ORDDATE                                   NOT NULL DATE
+ CUSTNO                                    NOT NULL CHAR(8)
+
+SQL> DESCRIBE OrdProd;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ORDNO                                     NOT NULL CHAR(8)
+ PRODNO                                    NOT NULL CHAR(8)
+ QTY                                       NOT NULL NUMBER(10)
+
+SQL> --
+SQL> --  Q5. Insert some sample data - Note sample coding style
+SQL> --
+SQL> -- Insert Customer Data
+SQL> INSERT INTO Customer
+  2    VALUES('C0954327','Sheri','Gordon','336 Hill St.','Littleton','CO',
+  3  	      '80129-5543',230.00);
+
+1 row created.
+
+SQL> -- Insert Product Data
+SQL> INSERT INTO Product
+  2    VALUES ('P1445671','Color Laser Printer','Intersafe',33,14.99,NULL);
+
+1 row created.
+
+SQL> -- Insert Order Data
+SQL> INSERT INTO OrderTbl
+  2    VALUES ('O1116324',DATE'2015-01-23','C0954327');
+
+1 row created.
+
+SQL> -- Insert Ordered Product Data
+SQL> INSERT INTO OrdProd
+  2    VALUES('O1116324','P1445671',5);
+
+1 row created.
+
+SQL> COMMIT;
+
+Commit complete.
+
+SQL> --
+SQL> -- Q6. Display inserted data
+SQL> --
+SQL> SELECT *
+  2  FROM Customer;
+
+CUSTNO   CUSTFIRSTNAME        CUSTLASTNAME                                      
+-------- -------------------- ------------------------------                    
+CUSTSTREET                                                                      
+--------------------------------------------------                              
+CUSTCITY                       CU CUSTZIP       CUSTBAL                         
+------------------------------ -- ---------- ----------                         
+C0954327 Sheri                Gordon                                            
+336 Hill St.                                                                    
+Littleton                      CO 80129-5543        230                         
+                                                                                
+
+SQL> --
+SQL> SELECT *
+  2  FROM Product;
+
+PRODNO   PRODNAME                                           PRODMFG             
+-------- -------------------------------------------------- --------------------
+   PRODQOH  PRODPRICE PRODNEXTSH                                                
+---------- ---------- ----------                                                
+P1445671 Color Laser Printer                                Intersafe           
+        33      14.99                                                           
+                                                                                
+
+SQL> --
+SQL> SELECT *
+  2  FROM OrderTbl
+  3  WHERE OrdDate = DATE'2015-01-23'
+  4    AND CustNo = 'C0954327';
+
+ORDNO    ORDDATE    CUSTNO                                                      
+-------- ---------- --------                                                    
+O1116324 2015-01-23 C0954327                                                    
+
+SQL> --
+SQL> SELECT *
+  2  FROM OrdProd;
+
+ORDNO    PRODNO          QTY                                                    
+-------- -------- ----------                                                    
+O1116324 P1445671          5                                                    
+
+SQL> --
+SQL> -- Q.7  - Note sample coding style
+SQL> --
+SQL> SELECT OrdNo, OrdDate, CustNo
+  2  FROM OrderTbl
+  3  WHERE OrdDate = DATE'2015-01-23'
+  4    AND CustNo = 'C0954327';
+
+ORDNO    ORDDATE    CUSTNO                                                      
+-------- ---------- --------                                                    
+O1116324 2015-01-23 C0954327                                                    
+
+SQL> --
+SQL> -- Q.8  - Note sample coding style
+SQL> --
+SQL> SELECT c.CustNo, CustFirstName, CustLastName,
+  2  	    o.OrdNo, OrdDate, p.ProdNo, ProdName, ProdPrice
+  3  FROM Customer c
+  4  	    JOIN OrderTbl o
+  5  	      ON c.CustNo = o.CustNo
+  6  	    JOIN OrdProd op
+  7  	      ON o.OrdNo = op.OrdNo
+  8  	    JOIN Product p
+  9  	      ON op.ProdNo = p.ProdNo
+ 10  WHERE OrdDate > DATE'2015-01-01'
+ 11    AND c.CustNo = 'C0954327';
+
+CUSTNO   CUSTFIRSTNAME        CUSTLASTNAME                   ORDNO    ORDDATE   
+-------- -------------------- ------------------------------ -------- ----------
+PRODNO   PRODNAME                                            PRODPRICE          
+-------- -------------------------------------------------- ----------          
+C0954327 Sheri                Gordon                         O1116324 2015-01-23
+P1445671 Color Laser Printer                                     14.99          
+                                                                                
+
+SQL> --
+SQL> -- Q.9  - Note use of SQL*Plus commands SET and COLUMN
+SQL> --        Compare the output differences between Q.8 and Q.9
+SQL> --
+SQL> SET LINESIZE 100
+SQL> SET PAGESIZE 60
+SQL> COLUMN CustFirstName FORMAT A10
+SQL> COLUMN CustLastName  FORMAT A15
+SQL> COLUMN ProdName	  FORMAT A15
+SQL> COLUMN ProdPrice	  FORMAT 9999.99
+SQL> --
+SQL> SELECT c.CustNo, CustFirstName, CustLastName,
+  2  	    o.OrdNo, OrdDate, p.ProdNo, ProdName, ProdPrice
+  3  FROM Customer c
+  4  	    JOIN OrderTbl o
+  5  	      ON c.CustNo = o.CustNo
+  6  	    JOIN OrdProd op
+  7  	      ON o.OrdNo = op.OrdNo
+  8  	    JOIN Product p
+  9  	      ON op.ProdNo = p.ProdNo
+ 10  WHERE OrdDate > DATE'2015-01-01'
+ 11    AND c.CustNo = 'C0954327';
+
+CUSTNO   CUSTFIRSTN CUSTLASTNAME    ORDNO    ORDDATE    PRODNO   PRODNAME        PRODPRICE          
+-------- ---------- --------------- -------- ---------- -------- --------------- ---------          
+C0954327 Sheri      Gordon          O1116324 2015-01-23 P1445671 Color Laser Pri     14.99          
+                                                                 nter                               
+                                                                                                    
+
+SQL> --
+SQL> --
+SQL> --  ** This last SQL*Plus SPOOL command line is MOST IMPORTANT !! **
+SQL> --  It is usually the last line of the script file, and its purpose
+SQL> --    is to close off the current spool output text file, so that all
+SQL> --    output from this script will be flushed to disk and saved to the
+SQL> --    SPOOL text file.
+SQL> --  Otherwise, you may end up missing output content.
+SQL> --
+SQL> SPOOL OFF

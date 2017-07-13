@@ -1,0 +1,54 @@
+
+HOTELNAME        HOTELADDRESS                             TYPE          PRICE   
+---------------- ---------------------------------------- -------- ----------   
+Holiday Inn      56 Edinburg Square, London               Single           35   
+Holiday Inn      56 Edinburg Square, London               Double           50   
+Grosvenor Hotel  100 Oxford Road, London                  Single           40   
+Grosvenor Hotel  100 Oxford Road, London                  Double           55   
+Grosvenor Hotel  100 Oxford Road, London                  Family           85   
+Grosvenor Hotel  100 Oxford Road, London                  Family           90   
+
+6 rows selected.
+
+
+HOTELNAME        HOTELADDRESS                                 ROOMNO DATETO     
+---------------- ---------------------------------------- ---------- ---------- 
+DATEFROM                                                                        
+----------                                                                      
+Meridian Hotel   789 Howe Street, Vancouver                       10            
+2016-09-21                                                                      
+                                                                                
+
+
+HOTELNAME        AVG(price)                                                     
+---------------- ----------                                                     
+Grosvenor Inn           105                                                     
+Meridian Hotel   106.666667                                                     
+Holiday Inn            42.5                                                     
+Imperial Palace         115                                                     
+Park Royal Hotel         67                                                     
+Delta Inn                75                                                     
+Grosvenor Hotel  83.3333333                                                     
+The Ramada       166.666667                                                     
+
+8 rows selected.
+
+
+HOTELNAME        Total Revenue                                                  
+---------------- -------------                                                  
+Holiday Inn                580                                                  
+Delta Inn                  900                                                  
+Grosvenor Hotel            905                                                  
+
+
+TYPE          PRICE Number of Rooms                                             
+-------- ---------- ---------------                                             
+Family           85               1                                             
+Family           90               1                                             
+Deluxe          120               2                                             
+Double           55               4                                             
+Single           40               4                                             
+Deluxe          110               1                                             
+
+6 rows selected.
+

@@ -1,0 +1,16 @@
+UNF
+orderForm(OrdNo, OrdDate, OrdName,OrdStreet, OrdCity, OrdState, OrdZip, CustNo, CustFirstName,
+          CustLastName,CustStreet, CustCity, CustState, CustZip, EmpNo, EmpFirstName, EmpLastName,
+		  ProdNo, Product, SuppNo, Supplier,Qty, Price, Amount)
+
+orderForm()		  
+		  
+		  
+		  
+		  
+1NF - Resolve the repetitive groups 
+
+Customer(CustNo,CustFirstName, CustLastName,CustStreet, CustCity, CustState, CustZip)
+OrderDetails(ProdNo, Product,SuppNo, Supplier, Qty, Price,Amount)
+Order(CustNo,OrderNo,OrderDate,OrdName,OrdCity, OrdState, OrdZip,ProdNo,)
+

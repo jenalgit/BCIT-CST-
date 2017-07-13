@@ -1,0 +1,168 @@
+SQL> -- ---------------------------------------------------------
+SQL> --  COMP 2714
+SQL> --  SET 2C
+SQL> --  LAB01 Exercise / Assignment Asn01
+SQL> --  Herradura, Lancelei	A00960501
+SQL> --      Kobunnoi, Kunlaya		A00959419
+SQL> --  email: lherradura@my.bcit.ca
+SQL> --      email: kkobunnoi@my.bcit.ca
+SQL> -- --------------------------------A-------------------------
+SQL> -- Q1: Dropped tables first before creating
+SQL> DROP TABLE OldBooking;
+SP2-0640: Not connected
+SQL> DROP TABLE Booking;
+SP2-0640: Not connected
+SQL> DROP TABLE Room;
+SP2-0640: Not connected
+SQL> DROP TABLE Hotel;
+SP2-0640: Not connected
+SQL> DROP TABLE Guest;
+SP2-0640: Not connected
+SQL> -- Q2: Create Hotel and Room Tables
+SQL> CREATE TABLE Hotel
+  2  	     (hotelNo	     CHAR(8)	     NOT NULL,
+  3  	     hotelName	     VARCHAR2(30)    NOT NULL,
+  4  	     city	     VARCHAR2(30) NOT NULL,
+  5  	     CONSTRAINT PKHotel PRIMARY KEY (hotelNo)
+  6  	     );
+SP2-0640: Not connected
+SQL> CREATE TABLE Room
+  2  	     (roomNo	     INTEGER(100)    NOT NULL,
+  3  	     hotelNo	     CHAR(8)		     NOT NULL,
+  4  	     type	     VARCHAR2(6)	     NOT NULL,
+  5  	     price	     DECIMAL(5,2)    NOT NULL,
+  6  	     CONSTRAINT PKRoom PRIMARY KEY (roomNo, hotelNo),
+  7  	     CONSTRAINT chkType 	     CHECK(type IN('Single', 'Double', 'Family')),
+  8  	     CONSTRAINT chkPrice     CHECK(price     BETWEEN 10 AND 100),
+  9  	     CONSTRAINT chkRoomNo    CHECK(roomNo BETWEEN 1 AND 100)
+ 10  	     );
+SP2-0640: Not connected
+SQL> -- Q3: Create Guest and Booking Table
+SQL> CREATE TABLE Guest
+  2  	     (guestNo		     CHAR(8)		     NOT NULL,
+  3  	     guestName		     VARCHAR2(30)    NOT NULL,
+  4  	     guestAddress    VARCHAR2(100)   NOT NULL,
+  5  	     CONSTRAINT PKGuest PRIMARY KEY (guestNo)
+  6  	     );
+SP2-0640: Not connected
+SQL> CREATE TABLE Booking
+  2  	     (hotelNo	     CHAR(8)	     NOT NULL,
+  3  	     guestNo	     CHAR(8)	     NOT NULL,
+  4  	     dateFrom	     DATE,
+  5  	     dateTo	     DATE,
+  6  	     roomNo	     CHAR(8)	     NOT NULL,
+  7  	     CONSTRAINT PKBooking PRIMARY KEY (hotelNo, guestNo, dateFrom),
+  8  	     CONSTRAINT FKBooking FOREIGN KEY (hotelNo, roomNo) REFERENCES (Hotel (hotelNo), Room (roomNo))
+  9  	     );
+SP2-0640: Not connected
+SQL> -- Q4: Insert sample data
+SQL> -- INSERT Hotel Data
+SQL> INSERT INTO Hotel
+  2  	VALUES('1','Marriot','Vancouver')
+  3  ;
+SP2-0640: Not connected
+SQL> INSERT INTO Hotel
+  2  	VALUES('2','Inn','Chilliwack')
+  3  ;
+SP2-0640: Not connected
+SQL> INSERT INTO Hotel
+  2  	VALUES('3','Fraser','Victoria')
+  3  ;
+SP2-0640: Not connected
+SQL> -- Insert Room DATA
+SQL> INSERT INTO Room
+  2    VALUES (9,'1','Single','19.00')
+  3  ;
+SP2-0640: Not connected
+SQL> INSERT INTO Room
+  2    VALUES (99,'2','Double','99.00')
+  3  ;
+SP2-0640: Not connected
+SQL> INSERT INTO Room
+  2    VALUES (100,'3','Family','29.00')
+  3  ;
+SP2-0640: Not connected
+SQL> --Insert Guest DATA
+SQL> INSERT INTO Guest
+  2    VALUES ('00111100','Dan','402 Fraser st')
+  3  ;
+SP2-0640: Not connected
+SQL> INSERT INTO Guest
+  2    VALUES ('00111102','Ben','521 Rupert st')
+  3  ;
+SP2-0640: Not connected
+SQL> INSERT INTO Guest
+  2    VALUES ('00111104','Hannah','109 Willindon Ave.')
+  3  ;
+SP2-0640: Not connected
+SQL> -- Q5a: Modify constraint for table Room; add type Deluxe
+SQL> ALTER TABLE Room DROP CONSTRAINT chkType;
+SP2-0640: Not connected
+SQL> ADD CONSTRAINT chkType CHECK(type IN('Single', 'Double','Family', 'Deluxe');
+SP2-0734: unknown command beginning "ADD CONSTR..." - rest of line ignored.
+SQL> -- Q5b: Add column discount to table Room
+SQL> ALTER TABLE Room
+  2  ADD discount INT NOT NULL DEFAULT 0;
+SP2-0640: Not connected
+SQL> CONSTRAINT chkDiscount CHECK(discount BETWEEN 0 and 30);
+SP2-0734: unknown command beginning "CONSTRAINT..." - rest of line ignored.
+SQL> -- Q6a: Increase price of room type Double
+SQL> UPDATE Hotel
+  2  SET price = (price * 0.15) + price
+  3  WHERE type = 'Double'
+  4  AND hotelNo = (SELECT hotelNo
+  5  		    FROM   Hotel
+  6  		    WHERE  hotelName = 'Marriot')
+  7  ;
+SP2-0640: Not connected
+SQL> -- Q6b: Modify booking for guest who arrived earlier than expected date
+SQL> -- and leave later than expected
+SQL> UPDATE Booking
+  2    SET dateFrom  =	DATE'2016-01-23',
+  3  	   dateTo    =	DATE'2016-01-30'
+  4    WHERE guestNo = (SELECT guestNo
+  5  			FROM Guest
+  6  			WHERE guestName = 'Dan')
+  7    AND hotelNo =   (SELECT hotelNo
+  8  			FROM Hotel
+  9  			WHERE hotelName = 'Marriot')
+ 10    AND dateFrom =	DATE'2016-01-22'
+ 11  	   dateTo   =	DATE'2015-01-31'
+ 12  
+SQL> ;
+  1  UPDATE Booking
+  2    SET dateFrom  =  DATE'2016-01-23',
+  3        dateTo    =  DATE'2016-01-30'
+  4    WHERE guestNo = (SELECT guestNo
+  5                     FROM Guest
+  6                     WHERE guestName = 'Dan')
+  7    AND hotelNo =   (SELECT hotelNo
+  8                     FROM Hotel
+  9                     WHERE hotelName = 'Marriot')
+ 10    AND dateFrom =   DATE'2016-01-22'
+ 11*       dateTo   =   DATE'2015-01-31'
+SQL> -- Q7: Create table OldBooking
+SQL> CREATE TABLE OldBooking
+  2  	     (hotelNo	     CHAR(8)	     NOT NULL,
+  3  	     guestNo	     CHAR(8)	     NOT NULL,
+  4  	     dateFrom	     DATE,
+  5  	     dateTo	     DATE,
+  6  	     roomNo	     CHAR(8)	     NOT NULL,
+  7  	     CONSTRAINT PKBooking PRIMARY KEY (hotelNo, guestNo, dateFrom),
+  8  	     CONSTRAINT FKOldBooking FOREIGN KEY (hotelNo, roomNo)
+  9  		     REFERENCES (Hotel (hotelNo), Room (roomNo))
+ 10  	     );
+SP2-0640: Not connected
+SQL> -- Q7b: Inserted Booking table data into Old Booking Archive table
+SQL> INSERT INTO OldBooking
+  2    (SELECT *
+  3    FROM Booking
+  4    WHERE dateTo < DATE'2016-09-01')
+  5  ;
+SP2-0640: Not connected
+SQL> -- Q7c: Delete rows from Booking with dateTo before 2016-09-01
+SQL> DELETE FROM Booking
+  2    WHERE dateTo < DATE'2016-09-01'
+  3  ;
+SP2-0640: Not connected
+SQL> SPOOL OFF

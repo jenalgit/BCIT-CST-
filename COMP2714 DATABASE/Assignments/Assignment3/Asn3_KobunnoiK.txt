@@ -1,0 +1,502 @@
+SQL> -- ---------------------------------------------------------
+SQL> --
+SQL> --  COMP 2714
+SQL> --  SET 2C
+SQL> --  Assignment Asn03
+SQL> --  Kobunnoi, Kunlaya A00959419
+SQL> --  email: kkobunnoi@my.bcit.ca
+SQL> --
+SQL> -- ---------------------------------------------------------
+SQL> --  BUILT DATABASE
+SQL> --  START C:\Users\Kunlaya\workspace\COMP2714\Assignments\Assignment3\Asn3SetupHotels.sql
+SQL> --
+SQL> --  ASSIGNMENT
+SQL> --  START C:\Users\Kunlaya\workspace\COMP2714\Assignments\Assignment3\Asn03_Kobunnoik.sql
+SQL> -- ---------------------------------------------------------
+SQL> --
+SQL> ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD';
+
+Session altered.
+
+SQL> --
+SQL> SELECT SYSDATE
+  2  FROM DUAL;
+
+SYSDATE                                                                         
+----------                                                                      
+2016-10-06                                                                      
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> --Q1) What is the average price of a room in london?
+SQL> ----------------------------------------------------------
+SQL> -- A) Using join?
+SQL> SELECT AVG(r.price) AS "Average price In London"
+  2  	  FROM Room r
+  3  	  INNER JOIN Hotel h
+  4  	       ON h.hotelNo = r.hotelNo
+  5  	  WHERE h.hotelAddress LIKE'%London%'
+  6  ;
+
+Average price In London                                                         
+-----------------------                                                         
+                     55                                                         
+
+SQL> -- B) Do this using IN subquery?
+SQL> SELECT AVG(price) AS "Average price in London"
+  2  	 FROM  Room
+  3  	 WHERE hotelNo IN
+  4  	      (SELECT hotelNo
+  5  	       FROM   Hotel
+  6  	       WHERE  hotelAddress LIKE'%London%'
+  7  	      );
+
+Average price in London                                                         
+-----------------------                                                         
+                     55                                                         
+
+SQL> 
+SQL> ----------------------------------------------------------
+SQL> -- Q2) How many different guests have made bookings for August?
+SQL> --     Use the month of 2016-10 instead of August, and do the
+SQL> --     query for each hotel, listing in hotelName order:
+SQL> --     i.e) How many different guests have made bookings for 2016-10
+SQL> -- 	 for each hotel.
+SQL> ----------------------------------------------------------
+SQL> SELECT h.hotelName, COUNT(DISTINCT b.guestNo) AS "Number of guest"
+  2  	  FROM Booking b
+  3  	  JOIN Hotel h ON h.hotelNo = b.hotelNo
+  4  	  WHERE (dateTo IS NULL OR dateTo >= DATE'2016-10-01')
+  5  	     AND dateFrom < DATE'2016-11-01'
+  6  	  GROUP BY h.hotelName
+  7  	  ORDER BY h.hotelName ASC
+  8  ;
+
+HOTELNAME        Number of guest                                                
+---------------- ---------------                                                
+Delta Inn                      2                                                
+Grosvenor Hotel                5                                                
+Grosvenor Inn                  3                                                
+Holiday Inn                    1                                                
+Imperial Palace                2                                                
+Meridian Hotel                 1                                                
+Park Royal Hotel               1                                                
+The Ramada                     1                                                
+
+8 rows selected.
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> -- Q3) List the details of all rooms at the Grosvenor Hotel, including
+SQL> --     the name of the guest staying in the room, if the room is occpied
+SQL> --     Use 2016-10-06 as today's date. Include all 'Grosvenor' hotels.
+SQL> --     List in hotelNo, roomNo order.
+SQL> ----------------------------------------------------------
+SQL> SELECT h.hotelNo,
+  2  	    r.roomNo,
+  3  	    r.type,
+  4  	    r.price,
+  5  	    g.guestname
+  6  	  FROM Room r
+  7  	      INNER JOIN
+  8  	      (SELECT *
+  9  	       FROM  Hotel
+ 10  	       WHERE hotelName LIKE '%Grosvenor%'
+ 11  	      ) h ON r.hotelNo = h.hotelNo
+ 12  	      LEFT JOIN
+ 13  	      (SELECT *
+ 14  	       FROM  Booking
+ 15  	       WHERE dateFrom <= DATE'2016-10-06'
+ 16  		AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 17  	      ) b ON h.hotelNo = b.hotelNo AND r.roomNo = b.roomNo
+ 18  	      LEFT JOIN
+ 19  		   Guest g ON b.guestNo = g.guestNo
+ 20  	      ORDER BY r.hotelNo, r.roomNo
+ 21  ;
+
+   HOTELNO     ROOMNO TYPE          PRICE GUESTNAME                             
+---------- ---------- -------- ---------- ---------------                       
+         1          1 Single           40                                       
+         1          2 Single           40                                       
+         1          3 Single           40 Diana Darby                           
+         1          4 Single           40 Sundeep Mohan                         
+         1          5 Double           55                                       
+         1          6 Double           55                                       
+         1          7 Double           55 Eileen Reynolds                       
+         1          8 Double           55                                       
+         1          9 Family           85                                       
+         1         10 Family           90                                       
+         1         11 Deluxe          110                                       
+
+   HOTELNO     ROOMNO TYPE          PRICE GUESTNAME                             
+---------- ---------- -------- ---------- ---------------                       
+         1         12 Deluxe          120                                       
+         1         13 Deluxe          120                                       
+         8          1 Double           95 Rick Hamilton                         
+         8          2 Double           95                                       
+         8          3 Double           95                                       
+         8          4 Double           95                                       
+         8          5 Double           95                                       
+         8          6 Family          125                                       
+         8          7 Family          125                                       
+         8          8 Family          125                                       
+         8          9 Family          125                                       
+
+   HOTELNO     ROOMNO TYPE          PRICE GUESTNAME                             
+---------- ---------- -------- ---------- ---------------                       
+         8         10 Family          125                                       
+         8         11 Deluxe          155                                       
+         8         12 Deluxe          155                                       
+         8         13 Deluxe          155                                       
+         8         14 Deluxe          155                                       
+         8         15 Deluxe          155 Tony Saunders                         
+         8         16 Single           45                                       
+         8         17 Single           45                                       
+         8         18 Single           45                                       
+         8         19 Single           45                                       
+         8         20 Single           45 Sundeep Mohan                         
+
+33 rows selected.
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> --Q4)List the rooms that are currently unocupied at all 'Grosvenor' hotels
+SQL> --List in hotelNo, roomNo oder.use NOT IN
+SQL> ----------------------------------------------------------
+SQL> SELECT h.hotelNo, r.roomNo
+  2  	   FROM Hotel h
+  3  	   JOIN Room r
+  4  	      ON h.hotelNo = r.hotelNo
+  5  	   WHERE h.hotelName LIKE '%Grosvenor%'
+  6  	      AND r.roomNo NOT IN
+  7  	       (SELECT b.roomNo
+  8  		FROM Booking b
+  9  		WHERE dateFrom <= DATE'2016-10-06'
+ 10  		   AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 11  		   AND b.hotelNo = r.hotelNo)
+ 12  	    ORDER BY hotelNo ASC, roomNo ASC;
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         1          1                                                           
+         1          2                                                           
+         1          5                                                           
+         1          6                                                           
+         1          8                                                           
+         1          9                                                           
+         1         10                                                           
+         1         11                                                           
+         1         12                                                           
+         1         13                                                           
+         8          2                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8          3                                                           
+         8          4                                                           
+         8          5                                                           
+         8          6                                                           
+         8          7                                                           
+         8          8                                                           
+         8          9                                                           
+         8         10                                                           
+         8         11                                                           
+         8         12                                                           
+         8         13                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8         14                                                           
+         8         16                                                           
+         8         17                                                           
+         8         18                                                           
+         8         19                                                           
+
+27 rows selected.
+
+SQL> ----------------------------------------------------------
+SQL> --Q5)List the rooms that are currently unocupied at all 'Grosvenor' hotels
+SQL> --List in hotelNo, roomNo oder.use NOT EXISTS.
+SQL> ----------------------------------------------------------
+SQL> SELECT h.hotelNo, r.roomNo
+  2  	   FROM Hotel h
+  3  	   JOIN Room r
+  4  	      ON h.hotelNo = r.hotelNo
+  5  	  WHERE h.hotelName LIKE '%Grosvenor%'
+  6  	     AND NOT EXISTS
+  7  	       (SELECT *
+  8  		  FROM Booking b
+  9  		 WHERE dateFrom <= DATE'2016-10-06'
+ 10  		   AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 11  		   AND b.hotelNo = r.hotelNo
+ 12  		   AND b.roomNo = r.roomNo)
+ 13  	 ORDER BY hotelNo ASC, roomNo ASC
+ 14  ;
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         1          1                                                           
+         1          2                                                           
+         1          5                                                           
+         1          6                                                           
+         1          8                                                           
+         1          9                                                           
+         1         10                                                           
+         1         11                                                           
+         1         12                                                           
+         1         13                                                           
+         8          2                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8          3                                                           
+         8          4                                                           
+         8          5                                                           
+         8          6                                                           
+         8          7                                                           
+         8          8                                                           
+         8          9                                                           
+         8         10                                                           
+         8         11                                                           
+         8         12                                                           
+         8         13                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8         14                                                           
+         8         16                                                           
+         8         17                                                           
+         8         18                                                           
+         8         19                                                           
+
+27 rows selected.
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> -- Q6) List the rooms that are currently unocupied at all 'Grosvenor' hotels
+SQL> --     List in hotelNo, roomNo roder. Use LEFT JOIN
+SQL> ----------------------------------------------------------
+SQL> SELECT h.hotelNo, r.roomNo
+  2  FROM Room r
+  3    LEFT JOIN Hotel h ON h.hotelNo = r.hotelNo
+  4    LEFT JOIN (
+  5  	 SELECT *
+  6  	 FROM Booking
+  7  	 WHERE dateFrom <= DATE'2016-10-06'
+  8  	 AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+  9    ) b ON b.hotelNo = h.hotelNo
+ 10  			   AND b.roomNo = r.roomNo
+ 11    LEFT JOIN Guest g ON g.guestNo = b.guestNo
+ 12  WHERE g.guestNo is NULL
+ 13  AND h.hotelName LIKE '%Grosvenor%'
+ 14  ORDER BY r.hotelNo, r.roomNo
+ 15  ;
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         1          1                                                           
+         1          2                                                           
+         1          5                                                           
+         1          6                                                           
+         1          8                                                           
+         1          9                                                           
+         1         10                                                           
+         1         11                                                           
+         1         12                                                           
+         1         13                                                           
+         8          2                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8          3                                                           
+         8          4                                                           
+         8          5                                                           
+         8          6                                                           
+         8          7                                                           
+         8          8                                                           
+         8          9                                                           
+         8         10                                                           
+         8         11                                                           
+         8         12                                                           
+         8         13                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8         14                                                           
+         8         16                                                           
+         8         17                                                           
+         8         18                                                           
+         8         19                                                           
+
+27 rows selected.
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> --Q7) List the rooms that are currently unocupied at all 'Grosvenor' hotels
+SQL> --    List in hotelNo, roomNo order. Use MINUS
+SQL> ----------------------------------------------------------
+SQL> SELECT hotelNo, roomNo
+  2  	 FROM Hotel
+  3  	 NATURAL JOIN Room
+  4  	 WHERE hotelName LIKE '%Grosvenor%'
+  5  	 MINUS
+  6  	 SELECT hotelNo, roomNo
+  7  	 From Hotel
+  8  	 NATURAL JOIN Room
+  9  	 NATURAL JOIN Booking
+ 10  	 WHERE dateFrom <= DATE'2016-10-06'
+ 11  	 AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 12  	 ORDER By hotelNo, roomNo
+ 13  	 ;
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         1          1                                                           
+         1          2                                                           
+         1          5                                                           
+         1          6                                                           
+         1          8                                                           
+         1          9                                                           
+         1         10                                                           
+         1         11                                                           
+         1         12                                                           
+         1         13                                                           
+         8          2                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8          3                                                           
+         8          4                                                           
+         8          5                                                           
+         8          6                                                           
+         8          7                                                           
+         8          8                                                           
+         8          9                                                           
+         8         10                                                           
+         8         11                                                           
+         8         12                                                           
+         8         13                                                           
+
+   HOTELNO     ROOMNO                                                           
+---------- ----------                                                           
+         8         14                                                           
+         8         16                                                           
+         8         17                                                           
+         8         18                                                           
+         8         19                                                           
+
+27 rows selected.
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> --Q8) What is the average number of bookings for each hotel in
+SQL> --    2016-10 instead of August
+SQL> ----------------------------------------------------------
+SQL> SELECT AVG(COUNT(guestNo)) AS "Average of Bookings"
+  2    FROM Booking b
+  3   WHERE (dateTo IS NULL OR dateTo >= DATE'2016-10-01')
+  4  	AND dateFrom <= DATE'2016-10-31'
+  5   GROUP BY b.hotelNo;
+
+Average of Bookings                                                             
+-------------------                                                             
+              2.125                                                             
+
+SQL> --
+SQL> ----------------------------------------------------------
+SQL> --Q9) WHat is the lost income from unocupied rooms at each hotels today??
+SQL> --    2016-10-06
+SQL> --    list HotelNo, hotelName, LostIncome	in hotelNo order.
+SQL> ----------------------------------------------------------
+SQL> SELECT h.hotelNo,
+  2  	    h.hotelName,
+  3  	    SUM(r.price) AS "Lost Income"
+  4  FROM Room r
+  5  INNER JOIN Hotel h
+  6    ON r.hotelNo = h.hotelNo
+  7    WHERE (r.hotelNo, r.roomNo) NOT IN
+  8  	   (SELECT hotelNo, roomNo
+  9  	    FROM Booking b
+ 10  	    WHERE dateFrom <= DATE'2016-10-06'
+ 11  	    AND (dateTo IS NULL OR dateTo >= DATE'2016-10-06')
+ 12  	    )
+ 13    GROUP BY h.hotelNo, h.hotelName
+ 14    ORDER BY h.hotelNo;
+
+   HOTELNO HOTELNAME        Lost Income                                         
+---------- ---------------- -----------                                         
+         1 Grosvenor Hotel          770                                         
+         2 Meridian Hotel          1060                                         
+         3 Holiday Inn              545                                         
+         4 The Ramada              2600                                         
+         5 Imperial Palace         1780                                         
+         6 Park Royal Hotel        1072                                         
+         7 Delta Inn                900                                         
+         8 Grosvenor Inn           1805                                         
+
+8 rows selected.
+
+SQL> 
+SQL> ------------------------------------------------------------
+SQL> -- 10. Create a view containing the guests for each guest at the Grosvenors.
+SQL> --     Use 2016-10-06 as today, and guestAccount as view name. [The account info
+SQL> --     for each guest means: Room (roomNo), Name (guestName), Check-in
+SQL> --     (dateFrom), Check-out (dateTo=today), Rate (price), #Days (calculate from
+SQL> --     dateTo and dateFrom), and Total (calculate from dateTo, dateFrom and price]
+SQL> --     Add a query to test the view.
+SQL> -------------------------------------------------------------
+SQL> DROP VIEW guestAccount;
+
+View dropped.
+
+SQL> 
+SQL> CREATE VIEW guestAccount
+  2  	 (Room, Name, "Check-In", "Check-Out", Rate, Days, Total)
+  3  	 AS
+  4  	 SELECT b.roomNo, g.guestName, b.dateFrom, DATE'2016-10-06', r.price,
+  5  		   (DATE'2016-10-06' - b.dateFrom), (DATE'2016-10-06' - b.dateFrom)*r.price
+  6  	      FROM Booking b
+  7  	     INNER JOIN Room r
+  8  		ON b.hotelNo = r.hotelNo
+  9  	       AND b.roomNo = r.roomNo
+ 10  	     INNER JOIN Guest g
+ 11  		ON b.guestNo = g.guestNo
+ 12  	     WHERE dateFrom <= DATE'2016-10-06'
+ 13  	       AND (b.dateTo >= DATE'2016-10-06' OR b.dateTo IS NULL)
+ 14  	       AND b.hotelNo IN
+ 15  	       (SELECT h.hotelNo
+ 16  		  FROM Hotel h
+ 17  		 WHERE h.hotelName LIKE 'Grosvenor Hotel');
+
+View created.
+
+SQL> 
+SQL> 
+SQL> SELECT *
+  2  FROM guestAccount
+  3  ORDER BY Room;
+
+      ROOM NAME            Check-In   Check-Out        RATE       DAYS          
+---------- --------------- ---------- ---------- ---------- ----------          
+     TOTAL                                                                      
+----------                                                                      
+         3 Diana Darby     2016-10-05 2016-10-06         40          1          
+        40                                                                      
+                                                                                
+         4 Sundeep Mohan   2016-09-21 2016-10-06         40         15          
+       600                                                                      
+                                                                                
+         7 Eileen Reynolds 2016-09-30 2016-10-06         55          6          
+       330                                                                      
+                                                                                
+
+SQL> ;
+  1  SELECT *
+  2  FROM guestAccount
+  3* ORDER BY Room
+SQL> 
+SQL> 
+SQL> --
+SQL> --END--------------------------------------------------------
+SQL> --
+SQL> SPOOL OFF

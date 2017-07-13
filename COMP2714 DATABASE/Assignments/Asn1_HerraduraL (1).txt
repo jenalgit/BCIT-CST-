@@ -1,0 +1,147 @@
+SET ECHO ON 
+SPOOL C:\Users\Lancelei\Documents\Asn1\Asn1_HerraduraL.sql
+-- ---------------------------------------------------------
+--  COMP 2714 
+--  SET 2C
+--  LAB01 Exercise / Assignment Asn01
+--  Herradura, Lancelei    A00960501
+--  Kobunnoi, Kunlaya	   A00959419
+--  email: lherradura@my.bcit.ca
+--  email: kkobunnoi@my.bcit.ca
+-- ---------------------------------------------------------
+-- Q1: Dropped tables first before creating
+DROP TABLE OldBooking;
+DROP TABLE Booking;
+DROP TABLE Room;
+DROP TABLE Hotel;
+DROP TABLE Guest;
+-- Q2: Create Hotel and Room Tables
+CREATE TABLE Hotel
+	(hotelNo	CHAR(8)		NOT NULL,
+	hotelName	VARCHAR2(30)	NOT NULL,
+	city		VARCHAR2(30) NOT NULL,
+	CONSTRAINT PKHotel PRIMARY KEY (hotelNo)
+	);
+CREATE TABLE Room
+	(roomNo		INTEGER			NOT NULL,
+	hotelNo   	CHAR(8)			NOT NULL,
+	type		VARCHAR2(6)		NOT NULL,
+	price		DECIMAL(5,2)	NOT NULL,
+	CONSTRAINT PKRoom PRIMARY KEY (roomNo, hotelNo),
+	CONSTRAINT chkType 	CHECK(type IN('Single', 'Double', 'Family')),
+	CONSTRAINT chkPrice 	CHECK(price BETWEEN 10 AND 100),
+	CONSTRAINT chkRoomNo 	CHECK(roomNo BETWEEN 1 AND 100)
+	);
+-- Q3: Create Guest and Booking Table
+CREATE TABLE Guest
+	(guestNo		CHAR(8)		NOT NULL,
+	guestName		VARCHAR2(30)	NOT NULL,
+	guestAddress		VARCHAR2(100)	NOT NULL,
+	CONSTRAINT PKGuest PRIMARY KEY (guestNo)
+	);
+CREATE TABLE Booking
+	(hotelNo	CHAR(8)		NOT NULL,
+	guestNo		CHAR(8)		NOT NULL,
+	dateFrom	DATE,
+	dateTo		DATE,
+	roomNo 		INTEGER		NOT NULL,
+	CONSTRAINT PKBooking PRIMARY KEY (hotelNo, guestNo, dateFrom),
+	CONSTRAINT FKBooking
+		FOREIGN KEY (roomNo, hotelNo) REFERENCES Room (roomNo, hotelNo)
+	);
+-- Q4: Insert sample data
+-- INSERT Hotel Data
+INSERT INTO Hotel
+   VALUES('1','Marriot','Vancouver')
+;
+INSERT INTO Hotel
+   VALUES('2','Inn','Chilliwack')
+;
+INSERT INTO Hotel
+   VALUES('3','Fraser','Victoria')
+;
+-- Insert Room DATA
+INSERT INTO Room
+  VALUES (9,'1','Single','19.00')
+;
+INSERT INTO Room
+  VALUES (99,'2','Double','99.00')
+;
+INSERT INTO Room
+  VALUES (100,'3','Family','29.00')
+;
+--Insert Guest DATA
+INSERT INTO Guest
+  VALUES ('00111100','Dan','402 Fraser st')
+;
+INSERT INTO Guest
+  VALUES ('00111102','Ben','521 Rupert st')
+;
+INSERT INTO Guest
+  VALUES ('00111104','Hannah','109 Willindon Ave.')
+;
+COMMIT;
+DESCIRBE Hotel;
+DESCRIBE Room;
+DESCRIBE Booking;
+DESCRIBE Guest;
+-- Q5a: Modify constraint for table Room; add type Deluxe
+ALTER TABLE Room
+DROP CONSTRAINT chkType;
+ALTER TABLE Room
+ADD CONSTRAINT chkType CHECK(type IN('Single', 'Double','Family', 'Deluxe'));
+-- Q5b: Add column discount to table Room
+ALTER TABLE Room
+ADD discount INT;
+ALTER TABLE Room
+MODIFY discount DEFAULT 0
+ADD CONSTRAINT chkDiscount CHECK(discount <= 30);
+-- Q6a: Increase price of room type Double
+UPDATE Hotel
+SET price = (price * 0.15) + price
+WHERE type = 'Double'
+AND hotelNo = (SELECT hotelNo
+               FROM   Hotel
+               WHERE  hotelName = 'Marriot')
+;
+-- Q6b: Modify booking for guest who arrived earlier than expected date
+-- and leave later than expected
+UPDATE Booking
+  SET dateFrom  =  DATE'2016-01-23',
+      dateTo    =  DATE'2016-01-30'
+  WHERE guestNo = (SELECT guestNo
+                   FROM Guest
+                   WHERE guestName = 'Dan')
+  AND hotelNo =   (SELECT hotelNo
+                   FROM Hotel
+                   WHERE hotelName = 'Marriot')
+  AND dateFrom =   DATE'2016-01-22'
+      dateTo   =   DATE'2015-01-31'
+
+;
+-- Q7: Create table OldBooking
+CREATE TABLE OldBooking
+	(hotelNo	CHAR(8)		NOT NULL,
+	guestNo		CHAR(8)		NOT NULL,
+	dateFrom	DATE,
+	dateTo		DATE,
+	roomNo 		CHAR(8)		NOT NULL,
+	CONSTRAINT PKBooking PRIMARY KEY (hotelNo, guestNo, dateFrom),
+	CONSTRAINT FKOldBooking FOREIGN KEY (hotelNo, roomNo) 
+		REFERENCES (Hotel (hotelNo), Room (roomNo))
+	);
+-- Q7b: Inserted Booking table data into Old Booking Archive table
+INSERT INTO OldBooking
+  (SELECT *
+  FROM Booking
+  WHERE dateTo < DATE'2016-09-01')
+;
+-- Q7c: Delete rows from Booking with dateTo before 2016-09-01
+DELETE FROM Booking
+  WHERE dateTo < DATE'2016-09-01'
+;
+
+SPOOL OFF
+
+
+

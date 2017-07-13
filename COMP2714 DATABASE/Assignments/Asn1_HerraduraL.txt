@@ -1,0 +1,43 @@
+-- Q1: Dropped tables first before creating
+DROP TABLE OldBooking;
+DROP TABLE Booking;
+DROP TABLE Room;
+DROP TABLE Hotel;
+DROP TABLE Guest;
+
+-- Q2: Create Hotel and Room Tables
+CREATE TABLE Hotel
+	(hotelNo	CHAR(8)		NOT NULL,
+	hotelName	VARCHAR(30)	NOT NULL,
+	city		VARCHAR(30) NOT NULL,
+	PRIMARY KEY (hotelNo)
+	);
+CREATE TABLE Room
+	(roomNo		INTEGER(100)	NOT NULL,
+	hotelNo   	CHAR(8)			NOT NULL,
+	type		VARCHAR2(6)		NOT NULL,
+	price		DECIMAL(5,2)	NOT NULL,
+	PRIMARY KEY (roomNo, hotelNo),
+	CONSTRAINT chkType CHECK(type	IN('Single', 'Double', 'Family'))
+	CONSTRAINT chkPrice CHECK(price	BETWEEN 10 AND 100)
+	CONSTRAINT chkRoomNo CHECK(roomNo 	BETWEEN 1 AND 100)
+	);
+-- Q3: Create Guest and Booking Table
+CREATE TABLE Guest
+	(guestNo		CHAR(8)			NOT NULL,
+	guestName		VARCHAR2(30)	NOT NULL,
+	guestAddress	VARCHAR2(100)	NOT NULL,
+	PRIMARY KEY (guestNo)
+	);
+CREATE TABLE Booking
+	(hotelNo	CHAR(8)		NOT NULL,
+	guestNo		CHAR(8)		NOT NULL,
+	dateFrom	DATE,
+	dateTo		DATE,
+	roomNo 		CHAR(8)		NOT NULL,
+	PRIMARY KEY (hotelNo, guestNo, dateFrom),
+	FOREIGN KEY (hotelNo) REFERENCES (Hotel (hotelNo)),
+	FOREIGN KEY (roomNo) REFERENCES (Room (roomNo))
+	);
+-- Q4: Insert sample data
+INSERT INTO
