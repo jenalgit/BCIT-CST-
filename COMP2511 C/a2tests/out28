@@ -1,0 +1,12 @@
+Usage: ./concat [OPTION]... [FILE]...
+Concatenate FILE(s), or standard input, to standard output.
+
+  -b|-B  number nonempty output lines
+  -e|-E  display $ at end of each line
+  -n|-N  number all output lines
+  -s|-S  suppress repeated empty output lines
+  -t|-T  display TAB characters as ^I
+  -h|-H  display this help and exit
+  --  mark end of options
+
+With no FILE, read standard input.
